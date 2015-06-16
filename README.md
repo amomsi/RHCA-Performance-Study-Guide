@@ -238,6 +238,70 @@ To create a slice as a child of another slice(inheriting all settings from the p
 
 
 
+#Chapter 5 - Hardware Profiling
+##Hardware Resources
+###CPU
+###Memory
+###Storage
+###Networking
+
+##Reviewing kernel messages
+```shell
+cat /proc/kmsg
+cat /var/log/dmesg
+```
+###Exploring dmesg output
+```shell
+less /var/log/dmesg
+```
+##Determining CPU information
+```shell
+lscpu
+lscpu -p
+x86info
+getconf -a
+```
+Output of lscpu is explained on pg. 112
+
+##Retrieving SMBIOS/DMI information
+dmidecode utility provided by the dmidecode package probes the local SYstem Management BIOS (SMBIOS) and Desktop Management Interface.
+```shell
+dmidecode
+```
+##Retrieving peripheral information
+```shell
+lspci
+lsusb
+lsusb -vv
+```
+
+##Generating a system profile with sosreport
+```shell
+sosreport -l
+```
+/etc/sos.conf
+```shell
+[plugins]
+disable = rpm, grub2
+```
+
+##Profiling Storage
+###Storage Hardware
+####Magnetic tapes
+####Magnetic hard disks
+####Optical discs
+####Flash drives
+####Punch cards
+###Profiling Storage
+####Profiling storage with bonnie++
+####Profiling storage with zcav
+```shell
+zcav -c1 -lvda1.zcav -f/dev/vda1
+```
+####Plotting zcav data with gunplot
+####Different forms of throughput
+
+
 
 
 
