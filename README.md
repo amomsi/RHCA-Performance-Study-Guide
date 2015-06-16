@@ -64,6 +64,7 @@ modinfo <module> - list module info
 modinfo -p <module> - list module parameters
 ```
 The /sys directory contains information provided by the kernel about the state of the system. For example, the /sys/module/<module-name>/parameters/<parameter-name>.
+
 ```shell
 options <module-name> <parameter>=<value>
 ```
@@ -80,11 +81,6 @@ modprobe -r usb_storage
 lsmod | grep usb
 modprobe usb_storage dealy_use=5
 This is a good way to test, we still need to make it perminent.
-vi /etc/modprobe.d/usb_storage.conf
-----usb_storage.conf
-options usb_storage dealy_use=4
-----
-modprobe usb_storage
 
 
 ##Installing and Enabling tuned
@@ -158,6 +154,105 @@ tuna -g
 ```
 
 #Chapter 4 - Limiting Resource Usage
+
+##Using ulimit
+Ulimit is a mechanism to limit system resources.
+Can set hard or soft limits. Soft limits can be temporaily exceeded by users.
+```shell
+ulimit -a
+```
+Configuration files:
+```shell
+/etc/security/limits.d/20-nproc.conf
+/etc/limits.conf
+```
+##Configuring persistent ulimit rules
+With systemd, it is also possible to set POSIX limits for services. This is accomplished using the family of Limit*= entries in the [Service] block of a unit file.
+
+Unit Files:
+```shell
+/usr/lib/systemd/system*
+/etc/systemd/system/*
+man systemd.service
+```
+DON'T EDIT THE UNIT FILE DIRECTORY. ALWAYS USE DROP-IN FILES.
+/etc/systemd/system/mcgruber.service.d/10-cpulimits.conf
+```shell
+[Service]
+LimitCPU=30
+```
+###Setting limits for services
+
+
+##Using Control Groups(cgroups)
+
+###cgroups and systemd
+
+* system.slice - All services started by systemd will be put into a new child group of this slice by default
+
+* user.slice - A new child slice is created in this slice for every user that logs into the system.
+
+* machine.slice - Virutal machines managed by libvirt will be automatically assigned a new child slice of this slice.
+
+###Inspecting cgroups
+```shell
+systemd-cgtop
+systemd-cgls
+systemd-run --slice=example.slice sleep 10d
+```
+
+###Managing systemd cgroup settings
+
+1. Enabling CPU, memory, and/or block I/O accounting for a service or a slice
+
+2. Placing resource limits on an individual service or slice
+
+3. 
+
+#### Enabling accounting
+Add these the the [Service] stanza in the unit files:
+```shell
+[Service]
+CPUAccounting=true
+MemoryAccounting=true
+BlockIOAccounting=true
+```
+
+####Enforcing limits
+Create a stanza in the unit files:
+```shell
+[System]
+CPUShares=512
+MemoryLimit=1G
+BlockIO*=
+```
+
+####Running services in a custom slice
+Ro run a service in a different slice, the setting Slice=other.slice can be used inside the [Service] block, where other.slice equls the name of a custom slice.
+```shell
+[Service]
+Slice=other.slice
+```
+
+To create a slice as a child of another slice(inheriting all settings from the parent unless explicity overridden), the slice should be named parent-child.slice
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
