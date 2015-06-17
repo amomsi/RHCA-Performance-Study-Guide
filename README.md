@@ -483,6 +483,34 @@ Modules (.ko files) must be plublished in /usr/lib/modules/$(uname -r)/systemtap
 
 ##Deploying SystemTap Instrumentation Modules - pg. 183
 
+# Small File Tuning - Chapter 8
+##Analyzing a Small File Workload
+
+Disk Schedular algorithms
+
+* noop -
+
+* deadline -
+
+* cfg -
+
+
+## Selecting a File System
+
+* XFS
+
+* ext4
+
+###Benchmarking file system performance
+
+
+##Tuning for a Mail Server - pg 205
+
+###Hardware
+
+###Operating System
+
+###Software
 
 
 
