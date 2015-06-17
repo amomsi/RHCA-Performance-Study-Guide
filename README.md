@@ -451,6 +451,40 @@ perf stat -e cache-misses cache1
 ```
 
 
+# Chapter 7 - Using Systemtap
+
+##Installing systemtap
+
+You must install these packages:
+
+* kernel-debuginfo
+
+* kernel-devel
+
+* systemtap
+
+Verify works just fine:
+```shell
+stap -e 'probe begin { printf("Hello World"!\n") exit()}'
+```
+
+##Using stap to run SystemTap scripts
+
+##Compiling SYstemtap programs to portable kernel modules
+```shell
+stap -p 4 -v -m syscalls_by_proc /usr/share/doc/systemtap-client-*/examples/process/syscalls_by_proc.stp
+staprun syscalls_by_proc
+```
+
+
+
+##Running SystemTap programs as a non-root user - pg. 178
+Modules (.ko files) must be plublished in /usr/lib/modules/$(uname -r)/systemtap in order for non-root users to have access to them.
+
+##Deploying SystemTap Instrumentation Modules - pg. 183
+
+
+
 
 
 
