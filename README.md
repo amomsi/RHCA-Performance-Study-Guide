@@ -338,10 +338,117 @@ zcav -c1 -lvda1.zcav -f/dev/vda1
 ####Different forms of throughput
 
 
+#Chapter 6 - Software Profiling
+Multitasking -
+Process Scheduler -
+
+##O(1) Scheduler
+Run queue -
+Expiered queue -
+It makes it difficult to measure what the real priority of a process is.
+
+##Completely Fair Scheduler(CFS)
+Uses a red-black tree based on virtual time. This virtual time is based on the time waiting to run and the number of processes vying for CPU time, as well as the priority of the process(es).
+
+Kernel tunables for CFS available in /proc/sys/kernel:
+
+* sched_latency_ns -
+
+* sched_min_granulairty_ns -
+
+* sched_migration_cost_ns -
+
+* sched_rt_runtime_us -
+
+* sched_rt_period_us -
+
+##Controlling CPU scheduling
+
+### Changing CPU scheduling on the command-line with systemd managed services.
+
+```shell
+systemctl set-property httpd.service CPUShares=2048
+systemctl set-property --runtime httpd.service CPUShares=2048
+systemctl show -p CPUShares system.slice
+```
+```--runtime``` does not create the drop-in files in the /etc/systemd/system/ directory.
 
 
+##Real-time CPU scheduling
+
+TWo real-time scheduling policies:
+
+1. SCHED_RR -
+
+2. SCHED_FIFO -
+
+###Non-real-time scheduling policies
+
+1. SCHED_NORMAL -
+
+2. SCHED_BATCH
+
+3. SCHED_IDLE -
+
+###Setting process priority with nice and renice
+
+```shell
+nice -n -5 sha1sum /dev/zero
+renice 19 2190
 
 
+###Changing process schedulers
+
+```shell
+chrt [scheduler] priority command
+```
+
+###The effects of different real-time policies running concurrently
+
+
+##Tracing System and Library Calls
+
+* system call -
+
+* library call -
+
+
+###System calls and library calls
+
+###Tracing System calls
+```shell
+strace uname
+strace -p 3124
+```
+
+
+###Tracing library calls
+```shell
+ltrace uname
+ltrace -p 2443
+ltrace -c uname
+ltrace -f elinks -dump http://classroom.example.com/pub
+```
+
+## Profiling CPU Cache Usage
+
+
+###Cache architecture
+
+###Locality of reference
+
+###Profiling cache usage with valgrind
+```shell
+yum install valgrind cache-lab
+valgrind --tool=cachegrind cache1
+```
+
+
+###Profilling cache misses with perf
+```shell
+perf list
+perf stat -e cache-misses cache1
+```
 
 
 
