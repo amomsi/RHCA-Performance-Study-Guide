@@ -559,8 +559,52 @@ ps up <pid>
 
 ##Process memory
 
+##Finding memory Leaks
+```shell
+yum install -y valgrind bigmem
+valgrind --tool=memcheck bigmem 256
+valgrind --tool=memcheck bigmem -v 256
+
+##Tuning swap
+
+###System memory and page cache
+
+###Swappiness
+
+###Optimizing swap spaces
+
+##Managing Memory Reclamation
+
+###Out-of-memory handling and the "OOM Killer"
+
+##Managin Non-uniform Memory Access
+```shell
+numactl --interleave=all bigdatabase
+numactl --cpunodebind=0 --membind=0,1
+numactl --preferred=1
+numactl --show
+numactl --localalloc /dev/shm/file
+```
 
 
+#Tuning for a cpu-intensive workload - Chapter 10
+
+##Configuring maximum CPU usage
+
+
+
+##Pinning Processes
+```shell
+CPUAffinity=""
+```
+
+##Balancing Interrupts
+
+
+##Employing Real-time Scheduling
+
+
+#Tuning a file server - Chapter 11 - pg. 285
 
 
 
