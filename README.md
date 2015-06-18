@@ -348,81 +348,105 @@ Expiered queue -
 It makes it difficult to measure what the real priority of a process is.
 
 ##Completely Fair Scheduler(CFS)
-Uses a red-black tree based on virtual time. This virtual time is based on the time waiting to run and the number of processes vying for CPU time, as well as the priority of the process(es).
+Uses a red-black tree based on virtual time. This virtual time is based on the time waiting to run and the number of processes vying for CPU time, as well as the priority of the process(es). The process with the most virtual time, which is the longest time waiting for the CPU, gets to use the CPU. As it uses CPU cycles, its virtual time decreases. Once the process no longer has the most virtual time, it is pre-empted and the process with the most virtual time then runs. 
 
 Kernel tunables for CFS available in /proc/sys/kernel:
 
-* sched_latency_ns -
+* sched_latency_ns - THe epoch duration in nanoseconds. The scheduler will run each task on the queue once during the epoch.
 
-* sched_min_granulairty_ns -
+* sched_min_granulairty_ns - The granularity of th epoch in nanoseconds. It must be smaller than ```sched_latency_ns```.
 
-* sched_migration_cost_ns -
+* sched_migration_cost_ns - The cost of migrating tasks amoung CPUs. If the real run time of the task is less than this value, then the scheduler will assume that is is still in cache and willt ry to avoid moving the task to another CPU.
 
-* sched_rt_runtime_us -
+* sched_rt_runtime_us - The maximum CPU time (in microseconds) that can be used by all real-time tasks in a ```sched_rt_period_us``` time period. ```sched_rt_period_us-sched_rt_runtime_us``` is reserved for non realtime tasks
 
-* sched_rt_period_us -
+* sched_rt_period_us - The time slice in which ```sched_rt_runtime_us is calculated
 
 ##Controlling CPU scheduling
 
 ### Changing CPU scheduling on the command-line with systemd managed services.
 
 ```shell
+#This makes a drop-in file for the respective service
 systemctl set-property httpd.service CPUShares=2048
+
+#This only changes the tunable at runtime, it's not persistant across reboots.
 systemctl set-property --runtime httpd.service CPUShares=2048
+
+#Show the value of the specific tunable.
 systemctl show -p CPUShares system.slice
 ```
-```--runtime``` does not create the drop-in files in the /etc/systemd/system/ directory.
-
 
 ##Real-time CPU scheduling
 
 TWo real-time scheduling policies:
 
-1. SCHED_RR -
+1. SCHED_RR - a round-robin scheduling policy. Processes at the same priority level using the round-robin scheduling policy are only allowed to run for a maximum time quantum.
 
-2. SCHED_FIFO -
+2. SCHED_FIFO - a first-in first-out schedule. It runs until it is blocked by I/O, calls ```sched_yield```, or is pre-empted by a higher-priority process.
+
+A system admin can prevent real-time tasks from taking all CPU time with two sysctl tunables:
+
+* ```kernel.sched_rt_period_us```: the time period in microseconds that represents the CPU allocation time frame.
+
+* ```kernel.sched_rt_runtime_us```: The share of the time frame that can be allocated for real time. THe default for this setting on a bare-metal installation of Red Hat Enterprise LInux 7 is 950000, which means that 0.95 seconds of the 1 second period can be allocated to real-time scheduled processes. The remaining 0.05 second is used by SCHED_OTHER. This setting prevents the system from allocation all CPU time to real-time processes, which would cause the system to be unresponsive. A setting of -1 disables reservation of time for real-time and non-real-time processes.
 
 ###Non-real-time scheduling policies
 
-1. SCHED_NORMAL -
+1. SCHED_NORMAL - The standard round-robin style time-sharing policy
 
-2. SCHED_BATCH
+2. SCHED_BATCH - is tuned for batch-style process execution. It does not pre-empt nearly as often as SCHED_NORMAL does, so the tasks run longer and make better use of caches.
 
-3. SCHED_IDLE -
+3. SCHED_IDLE - is for running very low priority applications. The priority of processes running with SCHED_IDLE is lower than a process running with nice 19
 
 ###Setting process priority with nice and renice
 
 ```shell
 nice -n -5 sha1sum /dev/zero
 renice 19 2190
-
+```
 
 ###Changing process schedulers
-
+The chrt command may start a program with a specified scheduler and a given priority. It may also change the scheduler and optionally the priority on an already running process.
 ```shell
 chrt [scheduler] priority command
 ```
 
 ###The effects of different real-time policies running concurrently
-
+You can change the scheduler policy with the following command:
+```shell
+chrt -p -f 10 $(cat /var/run/sshd.pid)
+```
 
 ##Tracing System and Library Calls
 
-* system call -
+* system call - A kernel-provided function that is called from a program. Always operating system specific.
 
-* library call -
+* library call - A function provided by a library.
 
 
 ###System calls and library calls
 
 ###Tracing System calls
+
 ```shell
 strace uname
 strace -p 3124
+
+#Display counts instead of detailed function call information
+strace -c uname
+
+#With the -f option, strace follows child processes created by the fork() system call
+strace -fc elinks -dump http://classroom.example.com/pub
+
+#With the -e option, the output can be filtered
+strace -e open -c uname
 ```
 
 
 ###Tracing library calls
+The ```ltrace``` command displays calls made to library functions by a process.
+
 ```shell
 ltrace uname
 ltrace -p 2443
@@ -432,10 +456,21 @@ ltrace -f elinks -dump http://classroom.example.com/pub
 
 ## Profiling CPU Cache Usage
 
-
 ###Cache architecture
+Cache memory is organized into lines. Each line of cache can be used to cache a specific location in memory.
+
+The cache controller first checks to see if the requested address is in cache and will satisfy the processor's request from there if it is. This is referred to as a cache hit. If the requested memory is not in cache, then a cache miss occurs and the requested location must be read from main memory and brought into cache. This is referred to as a cache-line fill.
+
+Cache memory can be configured as either write-through or write-back. IF write-through caching is enabled, then when a particular line of cache memory isupdated, the corresponding location in main memory must be updated as well. IF write-back caching is enabled, a write to a cache line does not get written back to main emmory until the cache line is deallocated.
+
+* Direct mapped cache is the least expensive type of cache memory. Each line of direct mapped cache can only cache a specific location in main memory
+
+* Fully associative cache memory is the most flexible type of cache memory and consequently the most expensive, as it requires the most cicuitry to implement. A fully associative cache memory line can cache any location in main memory.
+
+* Set associative cache memory is uually referred to as n-way set associative, where n is some power of 2. Set associative cache memory allows a memory location to be cached into any one of n lines of cache.
 
 ###Locality of reference
+Programs tend to exhibit certain patterns when accessing data. A program accessing memory location X is most likely to want to acess memory location X+1 in the next few cycles of its execution. This behavior of a program is referred to as spatial locality of reference. This is one of the reasons that it si more efficient to move data from disk to memory in pages rather than one byte at a time. Another type of pattern, temporal locality of reference, occurs when a program accesses the same memory location repeatedly during a time period.
 
 ###Profiling cache usage with valgrind
 ```shell
@@ -511,6 +546,18 @@ Disk Schedular algorithms
 ###Operating System
 
 ###Software
+
+#Tuning the server for large memory workload - Chapter 9
+
+##Memory Management
+
+```shell
+ps up <pid>
+```
+
+##Page tables and the TLB
+
+##Process memory
 
 
 
