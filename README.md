@@ -606,16 +606,64 @@ CPUAffinity=""
 
 #Tuning a file server - Chapter 11 - pg. 285
 
+##Selecting a tuned profile for a file server
+```shell
+blockdev --getra /dev/vda
+blockdev --setra 512 /dev/vda
+cat /sys/block/vda/queue/read_ahead_kb
+```
+
+##File System Performance
+###File fragmentation
+```shell
+xfs_db -c frag -r /dev/vdb2
+fsck -f /dev/vdb1
+filefrag -v largefile
+xfx_bmap -v largefile
+e2freefrag /dev/vgsrv/root
+ed4defrag -v largefile
+```
+
+###Journal placement
+```shell
+mkfs -t xfs -l logdev=/dev/ssd1 /dev/sdc1
+mount -o logdev=/dev/sdd1 /dev/sdc1 /mnt
+```
+
+###Stripe unit and width
+```shell
+mkfs -t xfs -d su=64k,sw=4 /dev/san/lun1
+```
+
+##Tuning network performance.
+```shell
+ethtool eth0
+```
+
+##Tuning network queues
 
 
+#Tuning a database server - CHapter 12
+##System memory
 
+##Disk storage
 
+##Networking
 
+##Managin Inter-process Communication
 
+```shell
+ipcs -l
+ipcs
+```
 
+/dev/shm - temporary storage. Will be lost if a power failure occurs.
 
+##Managing Huge Pages
+###Transparent huge pages
 
+##Overcomitting Memory
+###Tuning overcommit
 
-
-
-
+##Tuning swappiness
+##Tuning cached page writes
