@@ -16,6 +16,7 @@ sar
 ```shell
 #Commands
 yum install tuned
+tuned-adm profile <profile>
 
 #Important files and directoires
 ##Configuration files(Create custom tuned profiles as directories here)
@@ -46,5 +47,24 @@ valgrind --tool=cachegrind <command>
 ```shell
 yum install systemtap kernel-devel
 debuginfo-install kernel
+```
+
+#ps
+```shell
+#Show the virtual and physical allocation of a specific process.
+ps up <pid>
+
+#Can be used to view major and minor page faults
+ps o pid,comm,minflt,majflt <pid>
+
+
+
+```
+
+#x86info
+```shell
+#Can be used to determine the size of the TLB buffer
+x86info -c
+```
 
 

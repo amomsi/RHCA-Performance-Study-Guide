@@ -532,30 +532,29 @@ Disk Schedular algorithms
 
 ## Selecting a File System
 
-* XFS
+* XFS - In Glossary
 
-* ext4
+* ext4 - In Glossary
 
 ###Benchmarking file system performance
-
-
-##Tuning for a Mail Server - pg 205
-
-###Hardware
-
-###Operating System
-
-###Software
+For benchmarking results to be relevant, they must be obtained using benchmarking routines that simulate real-world workloads at the file system layer.
 
 #Tuning the server for large memory workload - Chapter 9
 
 ##Memory Management
+A normal page size is 4KiB.
 
+Processes do not address physical memory directly. Instead, each process has a virtual address space. When a process is allocated memory, the physical address of a page frame is mapped to one of the process's virtual addresses. From the perspective of a process, it has a private memory space and it can only see physical page frames that have been mapped into one of its virtual addresses.
 ```shell
 ps up <pid>
 ```
 
 ##Page tables and the TLB
+Since each process maintains its own virtual address space, each process needs its own table of mapings of the virtual addresses of pages to the physical addresses of page frames in RAM. On a 64-bit system, the high 52 bits (63 to 12) are the page number. However, on processors in production at the time of writing, the highest 16 bits of the virtual address are reserved, which causes a large block of virtual addresses to be unavailable for use by processes. This was done because it conserves certain resources on current hardware designs. 
+
+Major and minor page faults - see glossary
+
+
 
 ##Process memory
 

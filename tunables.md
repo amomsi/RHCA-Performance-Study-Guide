@@ -32,4 +32,10 @@ vm.nr_hugepages=32
 
 #Enable tcp fast open???
 net.ipv4.tcp_fastopen=<##>
+
+#Configure the kernel to accommodate more open files and sockets
+fs.file-max=<value>
+kernel.threads-max=<value>
+
+
 ```
