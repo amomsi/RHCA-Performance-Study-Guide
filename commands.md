@@ -31,13 +31,13 @@ tuned-adm profile <profile>
 /etc/security/limits.d/<filename>.conf
 ```
 
-#systemctl
+##systemctl
 ```shell
 systemctl set-property httpd.service MemoryLimit=512M
 systemctl daemon-reload
 ```
 
-#valgrind
+##valgrind
 ```shell
 yum install valgrind cache-lab bigmem
 valgrind --tool=cachegrind <command>
@@ -48,13 +48,13 @@ valgrind --tool=memcheck program [program arguments]
 
 ```
 
-#systemtap
+##systemtap
 ```shell
 yum install systemtap kernel-devel
 debuginfo-install kernel
 ```
 
-#ps
+##ps
 ```shell
 #Show the virtual and physical allocation of a specific process.
 ps up <pid>
@@ -69,20 +69,20 @@ ps -o pid,ppid,rss,vsz,command -p <PID>
 
 ```
 
-#x86info
+##x86info
 ```shell
 #Can be used to determine the size of the TLB buffer
 x86info -c
 ```
 
-#pmap
+##pmap
 ```shell
 #To view how the virtual address space of a process is used
 pmap <pid>
 ```
 
 
-#swapon
+##swapon
 ```shell
 #Set priority for a swap device
 swapon -p 1
@@ -91,5 +91,22 @@ swapon -p 1
 /etc/fstab
 
 ```shell
+
+##numactl
+```shell
+yum install numactl
+
+#Run bigdatabase with its memory interleaved across all CPUs
+numactl --interleave=all bigdatabase
+
+#Run process on node 0 with all memory allocated on node 0 and node 1
+numactl --cpunodebind=0 --membind=0,1
+
+#set node 1 as preferred , and show the resulting state.
+numactl --preferred=1; numactl --show
+
+#
+numactl --localalloc /dev/shm/file
+```
 
 
