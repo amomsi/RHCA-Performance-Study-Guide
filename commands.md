@@ -105,7 +105,7 @@ numactl --cpunodebind=0 --membind=0,1
 #set node 1 as preferred , and show the resulting state.
 numactl --preferred=1; numactl --show
 
-#
+# Reset the policy for teh shared memory file to the default local alloc policy
 numactl --localalloc /dev/shm/file
 ```
 
