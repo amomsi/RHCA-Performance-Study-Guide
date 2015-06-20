@@ -90,7 +90,7 @@ swapon -p 1
 #Important files and directories.
 /etc/fstab
 
-```shell
+```
 
 ##numactl
 ```shell
