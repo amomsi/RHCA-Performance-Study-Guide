@@ -59,3 +59,12 @@ vm.dirty_background_ratio=value
 #The percentage of total system memory being dirty at which a process generating writes will block and write out dirty pages.
 vm.dirty_ratio=value
 ```
+
+##OOM tunables
+```shell
+#Can take values from -17 to 15 where 0 means no change, -17 means immunity(never kill) and any other value will be used to modify oom_socre by mulitplying oom_score with 2^oom_adj. Therefore, setting a positive oom_adj value makes a process more likely to be killed, while setting a negative value reduces the chances of being terminated by the kernel.
+echo value > /proc/PID/oom_adj
+
+#Values put into oom_score_adj are also added to the oom_score. However, the mechanism for using oom_score_adj is different than oom_adj. oom_score_adj can be set to values ranging from -1000 to 1000. When a value is put into oom_score_adj that value is added to the oom_score.
+echo value > /proc/PID/oom_score_adj
+```
