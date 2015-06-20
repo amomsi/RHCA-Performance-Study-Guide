@@ -60,6 +60,14 @@ vm.dirty_background_ratio=value
 vm.dirty_ratio=value
 ```
 
+###Configuring CPU scheduler wakeups
+```shell
+#The number of nanoseconds the between each scheduler wake-up
+kernel.sched_min_granularity_ns=nanoseconds
+
+```
+
+
 ##OOM tunables
 ```shell
 #Can take values from -17 to 15 where 0 means no change, -17 means immunity(never kill) and any other value will be used to modify oom_socre by mulitplying oom_score with 2^oom_adj. Therefore, setting a positive oom_adj value makes a process more likely to be killed, while setting a negative value reduces the chances of being terminated by the kernel.
