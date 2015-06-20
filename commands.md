@@ -39,8 +39,13 @@ systemctl daemon-reload
 
 #valgrind
 ```shell
-yum install valgrind
+yum install valgrind cache-lab bigmem
 valgrind --tool=cachegrind <command>
+
+#Check if a program is leaking memory
+valgrind --tool=memcheck program [program arguments]
+
+
 ```
 
 #systemtap
@@ -57,6 +62,9 @@ ps up <pid>
 #Can be used to view major and minor page faults
 ps o pid,comm,minflt,majflt <pid>
 
+#Can be used to view virtual and physical memory allocations
+ps -o pid,ppid,rss,vsz,command -p <PID>
+
 
 
 ```
@@ -66,5 +74,22 @@ ps o pid,comm,minflt,majflt <pid>
 #Can be used to determine the size of the TLB buffer
 x86info -c
 ```
+
+#pmap
+```shell
+#To view how the virtual address space of a process is used
+pmap <pid>
+```
+
+
+#swapon
+```shell
+#Set priority for a swap device
+swapon -p 1
+
+#Important files and directories.
+/etc/fstab
+
+```shell
 
 
