@@ -43,5 +43,19 @@ kernel.threads-max=<value>
 
 #Configure swap tendency or influence
 vm.swappiness=<value>
+```
 
+###Controling per-BDI flush threads for writing dirty pages to disk
+```shell
+#How old (in 1/100ths of a second) dirty data must be before it is eligible for being written out to disk. This stops the kernel from writing out the same page multiple times in quick succession just because a process modifies another byte of memory.
+vm.dirty_expire_centisecs=value
+
+#How often(in 1/100ths of a second) the kernel will wake up the flushing threads to write out data. Setting this to 0 will diable periodic writeback completely.
+vm.dirty_writeback_centisecs=value
+
+#The percentage of total system memory being diry at which the kernel will start writing out data in the background.
+vm.dirty_background_ratio=value
+
+#The percentage of total system memory being dirty at which a process generating writes will block and write out dirty pages.
+vm.dirty_ratio=value
 ```
