@@ -557,20 +557,29 @@ Major and minor page faults - see glossary
 
 
 ##Process memory
+In RHEL7, memory management settings are moved from the process level to the application level through binding the system of cgroup hierarchies with the systemd unit tree.
 
 ##Finding memory Leaks
-```shell
-yum install -y valgrind bigmem
-valgrind --tool=memcheck bigmem 256
-valgrind --tool=memcheck bigmem -v 256
+To identify memory leaks, use tools like ps, top, free, sar -r or sar -R, or use dedicated tools like valgrind.
+
+
+See commands page for valgrind command examples.
 
 ##Tuning swap
+vmstat can be used to identify swapping. The critical columns for identifing swaps are ```si``` and ```so```.
 
 ###System memory and page cache
+The kernel uses most unallocated memory as a cache to store data being read from or written to disk. The next time that data is needed, it can be fetched from RAM rather than the disk.
 
 ###Swappiness
+When the kernel wants to free a page of memory, it has to evaluate the tradeoff between two choices. It can swap a page out from process memory, or it can drop a page from the page cache. In order to make this decision, the kernel will perform the following calculation:
+
+[swap_tendency](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/formulas.md#swap-tendency)
+
+Tuning [vm.swappiness](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#sysctl-tunables) can influence a system serverly. Set [vm.swappiness](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#sysctl-tunables) to 100 and the system will almost always prefer to swap out pages over reclaiming a page from the page cache. This will use more memory for pache caches, which can greatly increase performance for an I/O-heavy workload. Setting it to 1, on the other hand, will force the s ystem to swap as little as possible.
 
 ###Optimizing swap spaces
+When mulitple swap spaces are in use, the mount option [pri=<value>](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#swapon) can be used to specify the priority of use for each space. Swap spaces with a higher ```pri``` value will be filled upf irst before moving on the one with a lower priority. When mulitple swap spaces are activated with the same priority, they will be used in a round-robin fashion.
 
 ##Managing Memory Reclamation
 
