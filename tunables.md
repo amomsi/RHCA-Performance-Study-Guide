@@ -15,6 +15,10 @@ CPUSchedulingPolicy=batch
 [Service]
 CPUAffinity=<CPU#>
 
+#The amount of memory usable by a systemd service unit
+[Service]
+MemoryLimit=<Value><Size>
+
 ```
 ##sysctl tunables
 ```shell
@@ -37,5 +41,7 @@ net.ipv4.tcp_fastopen=<##>
 fs.file-max=<value>
 kernel.threads-max=<value>
 
+#Configure swap tendency or influence
+vm.swappiness=<value>
 
 ```
