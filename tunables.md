@@ -80,3 +80,13 @@ echo value > /proc/PID/oom_adj
 #Values put into oom_score_adj are also added to the oom_score. However, the mechanism for using oom_score_adj is different than oom_adj. oom_score_adj can be set to values ranging from -1000 to 1000. When a value is put into oom_score_adj that value is added to the oom_score.
 echo value > /proc/PID/oom_score_adj
 ```
+
+##cpuset cgroup tunables
+```shell
+
+#Configure the CPUs that an be used inside this cgroup.
+echo 0 > /sys/fs/cgroup/cpuset/<cgroup#>/cpuset.cpus
+
+#Configure which NUMA memory zones to use inside this cgroup.
+echo 0 > /sys/fs/cgroup/cpuset/<cgroup#>/cpuset.mems
+```
