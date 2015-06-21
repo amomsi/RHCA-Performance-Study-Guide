@@ -19,6 +19,10 @@ CPUAffinity=<CPU#>
 [Service]
 MemoryLimit=<Value><Size>
 
+#Configuring maximum CPU usage
+[Service|Slice]
+CPUShares=1024
+
 ```
 ##sysctl tunables
 ```shell
