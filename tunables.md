@@ -90,3 +90,11 @@ echo 0 > /sys/fs/cgroup/cpuset/<cgroup#>/cpuset.cpus
 #Configure which NUMA memory zones to use inside this cgroup.
 echo 0 > /sys/fs/cgroup/cpuset/<cgroup#>/cpuset.mems
 ```
+
+##irqbalance tunables
+```shell
+#When set to yes, irqbalance will sleep for one minute after startup, rebalance interrupts once, and then exit. This can be useful for avoiding the overhead of iqbalance waking up every 10 seconds
+IRQBALANCE_ONESHOT=yes
+
+#If set, irqbalance will not assign any interrupts to the CPUs listed. The value is a hexadecimal bitmask of all CPUs available on the system, calculated in the same way as smp_affinity. 
+#IRQBALANCE_BANNED_CPUS
