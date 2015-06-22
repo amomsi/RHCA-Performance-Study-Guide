@@ -1,6 +1,13 @@
 #Tunables
 
 
+##Tuned
+```shell
+#Configure the influence on how much data the kernel will attempt to read ahead when it sees contigous requests come in.
+[disk]
+readahead=number
+```
+
 ##Drop-in tunables
 ```shell
 #Adjust the OOM Score, lower values means it will not be eligable for killing
@@ -26,9 +33,6 @@ MemoryLimit=<Value><Size>
 #Configuring maximum CPU usage
 [Service|Slice]
 CPUShares=1024
-
-[disk]
-readahead=number
 
 ```
 ##sysctl tunables
