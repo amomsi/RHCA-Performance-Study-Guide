@@ -148,3 +148,10 @@ chrt -f
 chrt -r
 ```
 
+##blockdev
+```shell
+blockdev --getra /dev/vda
+blockdev --setra 512 /dev/vda
+cat /sys/block/vda/queue/read_ahead_kb
+```
+
