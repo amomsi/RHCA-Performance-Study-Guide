@@ -27,6 +27,9 @@ MemoryLimit=<Value><Size>
 [Service|Slice]
 CPUShares=1024
 
+[disk]
+readahead=number
+
 ```
 ##sysctl tunables
 ```shell
