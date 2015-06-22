@@ -11,6 +11,10 @@ OOMScoreAdjust=<value>
 [Service]
 CPUSchedulingPolicy=batch
 
+#Sets the CPU scheduling priority for executed processes.
+[Service]
+CPUSchedulingPriority=
+
 #Designate what CPU a process should run on
 [Service]
 CPUAffinity=<CPU#>

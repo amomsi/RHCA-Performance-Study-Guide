@@ -579,37 +579,100 @@ When the kernel wants to free a page of memory, it has to evaluate the tradeoff 
 Tuning [vm.swappiness](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#sysctl-tunables) can influence a system serverly. Set [vm.swappiness](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#sysctl-tunables) to 100 and the system will almost always prefer to swap out pages over reclaiming a page from the page cache. This will use more memory for pache caches, which can greatly increase performance for an I/O-heavy workload. Setting it to 1, on the other hand, will force the s ystem to swap as little as possible.
 
 ###Optimizing swap spaces
-When mulitple swap spaces are in use, the mount option [pri=<value>](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#swapon) can be used to specify the priority of use for each space. Swap spaces with a higher ```pri``` value will be filled upf irst before moving on the one with a lower priority. When mulitple swap spaces are activated with the same priority, they will be used in a round-robin fashion.
+When mulitple swap spaces are in use, the mount option [pri=value](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#swapon) can be used to specify the priority of use for each space. Swap spaces with a higher ```pri``` value will be filled upf irst before moving on the one with a lower priority. When mulitple swap spaces are activated with the same priority, they will be used in a round-robin fashion.
 
 ##Managing Memory Reclamation
+Physical memory needs to be reclaimed from time to time to stop memory from fillingup, rendering a system unusable. Memory can be in different states:
+
+* [Free](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#states-of-a-memory-page)
+
+* [Inactive clean](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#states-of-a-memory-page)
+
+* [Inactive Diry](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#states-of-a-memory-page)
+
+* [Active](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#states-of-a-memory-page)
+
+Display /proc/meminfo to get a systemwide overview of memory allocations.
+
+For a per-process view, use /proc/PID/smaps.
+
+Dirty pages must be written to disk to keep memory from filling up wtih pages that cannot be freed. Writing out dirty pages to disk is handled by Per-BDI flush threads. Per-BDI flush will show up in the process list as flush-MAJOR:MINOR.
+
+See [sysctl tunables](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#controling-per-bdi-flush-threads-for-writing-dirty-pages-to-disk) for controling when the per-BDI flush threads start writing data to disk.
+
+Setting lower ratios results in more frequent but shorter writes, suited for an interactive system, while setting hiegher raios will result in fewer but bigger writes, causing less overhead in total but ppossibly resulting in higher response times for interactive applications.
 
 ###Out-of-memory handling and the "OOM Killer"
+When a minor page fault happens, but there are no free pages avilable, the kernel tries to relaim emory to satisfy the request. If it cannot reclaim sufficient memory in a timely manner, an out-of-memory condition occurs.
+
+To determine which process the OOM killer should kill, the kernel keeps a running badness score for every process, which can be viewed in /proc/PID/oom_score. The higher the score, the more likely the process will be killed by the OOM killer.
+
+[More OOM Tunables](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#oom-tunables)
+
+###Memory zones and OOM
+It is possible for the system to be in an out-of-memory condition while ```free``` still reports memory available. This is because sometimes memory is needed from a particular memory zone that is not available.
+
+One way to observe memory consumption on a per-zone basis is by looking in the /proc/buddyinfo file. The memory management system uses a "buddy allocator" to organize free memory into contiguous chunks.
 
 ##Managin Non-uniform Memory Access
-```shell
-numactl --interleave=all bigdatabase
-numactl --cpunodebind=0 --membind=0,1
-numactl --preferred=1
-numactl --show
-numactl --localalloc /dev/shm/file
-```
+On a NUMA system, system memory is divided into zones that are connected directly to particular CPUs or sockets.
+
+To see how a system is divided into nodes, use the [numactl --hardware](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#numactl) command from the numactl package.
 
 
 #Tuning for a cpu-intensive workload - Chapter 10
 
+##Configuring CPU scheduler wakeups
+In normal operation, CFS tries to give each process an even chunk of CPU when there are multiple processes in state RUNNABLE. It does this by keeping rack of how much CPU each process has used. The scheduler wakes up every [kernel.sched_min_granularity_ns](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#configuring-cpu-scheduler-wakeups) nanoseconds ( a nonsecond is 10^9 seconds, or one-billionth of a second). When the scheduler wakes up, it checks if the current running process is the one that has had the least amount of CPU so far. If it is, the process is allowed to keep on running. If the process is not the one that has had the least amount of CPU time, it will be kicked off the CPU(pre-empted). For batch processing serversk, like compute nodes, it might be useful to increase the kernel.sched_min_granularity_ns systctl so that the scheduler wakes up less often.
+
 ##Configuring maximum CPU usage
+The CFS scheduler also has the idea of scheduler groups implemented. Using scheduler groups allows processes to be no longer seen as equals but rather process groups, in this case implemented using cgroups with the cpu controller. Each group is assigned a weight using the [cpu.shares]() tunable inside the group. The default weight for the / cgroup and any new cgroups created is 1024.
+
 
 
 
 ##Pinning Processes
-```shell
-CPUAffinity=""
-```
+Sometimes it is desirable to limit on which CPU(s) a process is allowed to run. systemd offers a convenient way limiting the CPUs available to a service using the [CPUAffinity=](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#drop-in-tunables) setting inside a [Service] block of a unit definition. This setting takes a separated list of CPU indexes the service is allowed to run on, with the first CPU being index 0, the second index 1, etc..
+
+A scalable way to limit the available CPUs and memory zones is by using a cpuset cgroup.
+
+* [cpuset.cpus](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#cpuset-cgroup-tunables)
+
+* [cpuset.mems](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#cpuset-cgroup-tunables)
+
+* [cpuset.{cpu,memory}_exclusive](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#cpuset-cgroup-tunables)
 
 ##Balancing Interrupts
+Since an interrupt needs to be handled when it occurs, a CPU will need to be chosen on which to execute the corresponding code. On a single CPU system the choice is easy, but when there are multiple available CPUs, the choise of which CPU to execute the choice of which CPU to execute the code on can become interesting.
 
+The file /proc/interrupts details how often specific interrupts have been handled on a specific CPU.
+
+To determine on which CPUs the kernel will execute a given interrupt-handler, the kernel will look at the file /proc/irq/number/smp_affinity. This file has a bitmask in it, represented as a hexadecimal number. For every CPU that an interrupt is allowed to be handled on, the corresponding bit will be set to 1; the bit will be set to 0 if the kernel is not allowed to use said CPU for that interrupt.
+
+To calculate the value associated with a certain CPU, use the formula: [value=2^n](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/formulas.md#balancing-interrupts), where n is the CPU number, starting at 0 for the first CPU.
+
+Alternatively, the file ```proc/irq/number/smp_affinity_list``` can be used as well. This file takes a comma separated list of CPU indexes (starting at 0) that can be used to handle the interrupt.
+
+The purpose of irqbalance is to adjust the smp_affinity of all interrupts every 10 seconds so that an interrupt handler has the highest chance of getting cache hits when executing. On single-core systems and dual-core systems that share their L2 cache, irqbalance will do nothing.
+
+In ```/etc/sysconfig/irqbalance```, there are two settings that can be made to influence the behavior of the irqbalance daemon.
+
+* [IRQBALANCE_ONESHOT](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#irqbalance-tunables)
+
+* [IRQBALANCE_BANNED_CPUS](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#irqbalance-tunables)
 
 ##Employing Real-time Scheduling
+So far, it has been assumed processes are being scheduled in the default scheduler policy: SCHED_NORMAL(also known as SCHED_OTHER). Processes can also be put under different scheduler policies, changing the way they will be preempted and allocated time slots on the CPU.
+
+* [SCHED_NORMAL or SCHED_OTHER](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#cpu-schduling-policies)
+
+* [SCHED_BATCH](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#cpu-schduling-policies)
+
+* [SCHED_IDLE](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#cpu-schduling-policies)
+
+* [SCHED_FIFO](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#cpu-schduling-policies)
+
+* [SCHED_RR](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#cpu-schduling-policies)
 
 
 #Tuning a file server - Chapter 11 - pg. 285
