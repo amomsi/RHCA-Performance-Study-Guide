@@ -35,6 +35,21 @@ tuned-adm profile <profile>
 ```shell
 systemctl set-property httpd.service MemoryLimit=512M
 systemctl daemon-reload
+
+#Permanently enable cpu accounting for services.
+systemctl set-property <service> CPUAccounting=yes
+
+#Enable CPU accounting for service at runtime
+systemctl set-property --runtime <service> CPUAccounting=yes
+
+#Setup CPUShares value on a service
+systemctl set-property <service> CPUShares=<number>
+```
+
+##systemd-cgtop
+```
+#Inspect CPU usage
+systemd-cgtop
 ```
 
 ##valgrind
@@ -65,7 +80,8 @@ ps o pid,comm,minflt,majflt <pid>
 #Can be used to view virtual and physical memory allocations
 ps -o pid,ppid,rss,vsz,command -p <PID>
 
-
+#Can be used to view all threads and CPU information for a process
+ps mo pid,comm,psr $(pgrep <process>)
 
 ```
 
@@ -109,4 +125,26 @@ numactl --preferred=1; numactl --show
 numactl --localalloc /dev/shm/file
 ```
 
+##top
+```shell
+top
+```
+
+##chrt
+```shell
+#Select the SCHED_BATCH schceduling policy
+chrt -b <command>
+
+#Select the SCHED_NORMAL scheduling policy
+chrt -o
+
+#Select the SCHED_IDLE scheduling policy
+chrt -i
+
+#Select the SCHED_FIFO scheduling policy
+chrt -f
+
+#Select the SCHED_RR scheduling policy
+chrt -r
+```
 
