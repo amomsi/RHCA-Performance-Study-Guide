@@ -221,3 +221,12 @@ mkfs -t xfs -l logdev=/dev/sdd1 /dev/sdc1
 mount -o logdev=/dev/sdd1 /dev/sdc1 /mnt
 ```
 
+##qperf
+```shell
+#The listener
+qperf
+
+#The sender
+qperf desktopYIP tcp_bw udp_bw
+```
+
