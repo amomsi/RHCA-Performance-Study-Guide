@@ -214,3 +214,10 @@ e4defrag -v /home/user/tmp
 e4degrag -c /mnt/ext4
 ```
 
+##mkfs/mount
+```shell
+#The logdev mount option is used to specify an external journal.
+mkfs -t xfs -l logdev=/dev/sdd1 /dev/sdc1
+mount -o logdev=/dev/sdd1 /dev/sdc1 /mnt
+```
+

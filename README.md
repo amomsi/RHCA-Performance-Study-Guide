@@ -684,6 +684,7 @@ The [blockdev](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/mast
 
 
 ##File System Performance
+###File fragmentation
 Both the default file system in RHEL7, XFS, and its predecessor, ext4, attempt to minimize fragmentation by pre-allocating extra data blocks on disk when a file is being written. If the extra blocks have not yet been used when the file is closed, they are marked as free again.
 
 In order to make it more likely that large areas of contiguous free space are always available, the ext4 file system also sets aside reserved space, normally given as a percentage of total file system space or a number of file system blocks.
@@ -700,17 +701,18 @@ On ext4 file systems, the number of free file system extents of a given size can
 
 Both XFS and ext4 provide tools for performing online defragmentation. The [xfs_fsr](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#xfs_fsr) and [e4defrag](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#e4defrag) utilities are available for the XFS and ext4 file systems, respectively. Both tools offer multiple defragmentation methods
 
-###File fragmentation
-```shell
-xfs_db -c frag -r /dev/vdb2
-fsck -f /dev/vdb1
-filefrag -v largefile
-xfx_bmap -v largefile
-e2freefrag /dev/vgsrv/root
-ed4defrag -v largefile
-```
-
 ###Journal placement
+A journal speeds file system recovery by being a sort of logbook for the file system. Whenever a change is about ot be made to the file system, the transaction will be recorded in the journal. After the operation is completed, the journal entry is removed.
+
+The ext3/ext4 journal can work in three different modes, chosen by passing the data=mode option to the file system at mount time. The default mode is ```ordered```. Thre three modes are:
+
+* [ordered](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#ext3ext4-journal-modes)
+
+* [writeback](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#ext3ext4-journal-modes)
+
+* [journal](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#ext3ext4-journal-modes)
+
+
 ```shell
 mkfs -t xfs -l logdev=/dev/ssd1 /dev/sdc1
 mount -o logdev=/dev/sdd1 /dev/sdc1 /mnt
