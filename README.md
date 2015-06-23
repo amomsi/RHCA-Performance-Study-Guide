@@ -712,13 +712,18 @@ The ext3/ext4 journal can work in three different modes, chosen by passing the d
 
 * [journal](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/glossary.md#ext3ext4-journal-modes)
 
+To enable or disable barriers at mount time on XFS file system, use either the barrier or the nobarrier option, respectively. On devices with a battery-backed cache, barriers can be disabled for a performance improvement while still guaranteeing data integrity.
 
+By default, when XFS and ext4 file systems are created, their journals are placed on the same block device as the file system data. With certian workloads, such as those involving a large number of random writes, there may be disk contention between the write operations and their accompanying journal updates.One way to imporve journal performance is to place the journal on a separate device from the one that contains the file system.
+
+To create a new XFS file system with an external journal, use the ```logdev``` log section option
 ```shell
 mkfs -t xfs -l logdev=/dev/ssd1 /dev/sdc1
 mount -o logdev=/dev/sdd1 /dev/sdc1 /mnt
 ```
 
 ###Stripe unit and width
+
 ```shell
 mkfs -t xfs -d su=64k,sw=4 /dev/san/lun1
 ```
