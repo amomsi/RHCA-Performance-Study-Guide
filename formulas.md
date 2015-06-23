@@ -15,3 +15,12 @@ swap_tendency = mapped_ratio/2 + distress + vm_swappiness
 ```shell
 printf '%0x' $[2**0 + 2**2 + 2**7] > /proc /irq/50/smp_affinity
 ```
+
+##Stripe Unit and Width
+```shell
+#Stride is the number of file system blocks that fit inside one chunk. An an example, for a file system block size of 4KiB and a chunk size of 64 KiB, the stride will be:
+stride = 64KiB/4KiB = 16 blocks
+
+#Stripe width is the number of file system blocks tha tfit on one stripe of the RAID array. For example, imagine a six disk RAID 6 array. By definition, in each stripe of RAID 6 array, two disks contain parity data. For the stripe-width, it is necessary to know how many disks in each stripe actually carry data blocks, so that will be 6 disks - 2 parity disks = 4 data disks. Each of those four disk will have ```stride``` number of file system blocks per chunk, so calculate 4(disks) x 16(stride) = 64 file system blocks per stripe.
+stride width = 4(disks) x 16(stride) = 64
+```
