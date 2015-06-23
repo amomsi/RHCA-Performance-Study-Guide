@@ -154,4 +154,63 @@ blockdev --getra /dev/vda
 blockdev --setra 512 /dev/vda
 cat /sys/block/vda/queue/read_ahead_kb
 ```
+##xfs_db
+```shell
+#Report fragmentation factor for XFS file systems
+xfs_db -c frag -r /dev/vdb2
+```
+
+##fsck
+```shell
+#Report fragmentation as a percentage of fragmented files
+fsck -fn /dev/vdb1
+```
+
+##filefrag
+```shell
+#report the number of extents(contiguous space on disk) used by a particular file on either the XFS or ext4 file system
+firefrag -v largefile
+```
+
+##xfs_bmap
+```shell
+#Generate a fragmentation report for a particular file on XFS
+xfs_bmap -v largefile
+```
+
+##e2freefrag
+```shell
+#Report the number of free file system extents on a ext4 file system
+e2freefrag /dev/vgsrv/root
+```
+
+##xfs_fsr
+```shell
+#For XFS file systems
+#Target defrag a single file
+xfs_fsr -v largefile
+
+#Deframentation on file system
+xfs_fsr -v /path/to/mount/point
+
+#Defrag on specific time period
+xfs_fsr -v -t 600
+```
+
+##e4defrag
+```shell
+#For ext4 file systems
+#Defag a single file
+e4defrag -v largfile
+
+#Defrag against file system
+e4defrag -v /path/to/mount/point
+e4defrag -v /dev/vdb1
+
+#defrag a directory
+e4defrag -v /home/user/tmp
+
+#Calculate defragmentation to determine if necessary
+e4degrag -c /mnt/ext4
+```
 
