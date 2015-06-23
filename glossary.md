@@ -53,3 +53,11 @@
 * SCHED_FIFO - A real-time scheduler. Priorities can range from 1 to 99, with 1 being the lowest and 99 being the highest. A process in SCHED_FIFO will stay running on a CPU until it is pre-empted by a higher priority process, blocked by an I/O request, or the process voluntarily calls sched_yield() to give up the CPU. Selected with chrt -f priority.
 
 * SCHED_RR - An extension on SCHED_FIFO. All the same rules apply, but processes now also get a maximum time slice on the CPU before they are pre-empted. Selected with chrt -r
+
+###ext3/ext4 Journal modes
+
+* ordered: Only metadata is recorded in the journal. Journal entries will only be committed after all file data has been flushed to disk.
+
+* writeback: Only metadata is recorded in the journal, but data ordering is not preserved. This is rumored to be the fastest method, and internal file system integrity is guaranteed, but after a crash and recovery, old data may show up inside files.
+
+* journal: All data is first stored in the journal before being written out to disk. This give the best reliability for the file system but can be the worst performer in most workloads. In workloads with many small writes, this could help increase performance since the disk elevator gets a chance to group writes together.
