@@ -678,13 +678,28 @@ So far, it has been assumed processes are being scheduled in the default schedul
 #Tuning a file server - Chapter 11 - pg. 285
 
 ##Selecting a tuned profile for a file server
-```shell
-blockdev --getra /dev/vda
-blockdev --setra 512 /dev/vda
-cat /sys/block/vda/queue/read_ahead_kb
-```
+The throughput-performance profile, and the network-throughput profile that inherits its properties, both increase the default [readahead](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#tuned) setting for block devices by a factor of 32. This setting influences how much data the kernel will attempt to read ahead when it sees contigous requests come in.
+
+The [blockdev](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#blockdev) command can be used to read and write the ```read_ahead_kb``` tunable. Use the ```--getra``` and ```setra``` options to blockdev to get and set the readahead values respectively.
+
 
 ##File System Performance
+Both the default file system in RHEL7, XFS, and its predecessor, ext4, attempt to minimize fragmentation by pre-allocating extra data blocks on disk when a file is being written. If the extra blocks have not yet been used when the file is closed, they are marked as free again.
+
+In order to make it more likely that large areas of contiguous free space are always available, the ext4 file system also sets aside reserved space, normally given as a percentage of total file system space or a number of file system blocks.
+
+Fragmentation in a file system can be reported in multiple ways. FOr the XFS file system, the [xfs_db](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#xfs_db) command can report a fragmentation factor.
+
+With the ext4 file system, fragmentation can be reported as a percentage of fragmented files with the [fsck.ext4](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#fsck) command.
+
+The [filefrag](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#filefrag) utility can be used to report the number of extents (contiguous space on disk) used by a particular file on either the XFS or ext4 file system.
+
+The [xfs_bmap](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#xfs_bmap) utility can be used to generate a fragmentation report for a particular file on XFS file systems only.
+
+On ext4 file systems, the number of free file system extents of a given size can be reported by the [e2freefrag](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#e2freefrag) command.
+
+Both XFS and ext4 provide tools for performing online defragmentation. The [xfs_fsr](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#xfs_fsr) and [e4defrag](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#e4defrag) utilities are available for the XFS and ext4 file systems, respectively. Both tools offer multiple defragmentation methods
+
 ###File fragmentation
 ```shell
 xfs_db -c frag -r /dev/vdb2
