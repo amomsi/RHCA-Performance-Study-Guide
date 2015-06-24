@@ -100,6 +100,35 @@ kernel.sched_min_granularity_ns=nanoseconds
 
 ```
 
+###SysV IPC tunables
+```shell
+
+#Specifies the maximum number of shared memory segments systemwide.
+kernel.shmmi=<num>
+
+#Specifies the total amount of shared memory, in pages, that can be used at one time on the system. ipcs -l displays this value after converting it to KiB. This should be at least kernel.shmmax/PAGE_SIZE, where PAGE_SIZE is the page size on the system (4KiB is typical). PAGE_SIZE can be looked up using getconf PAGESIZE.
+kernel.shmall
+
+#Specifies the maximum size of a shared segment that can be created, in bytes.
+kernel.shmmax=<bytes>
+
+#Specifies the maximum number of bytes in a single message queue.
+kernel.msgmnb=<bytes>
+
+#Specifies the maximum number of message queue identifiers
+kernel.msgmni=<num>
+
+#Specifies the maximum size of a message that can be passed between processes. Note that this memory cannot be swapped.
+kernel.msgmax=<size>
+
+#Contains settings for:
+# The maximum number of semaphores per semaphore array.
+# The maximum number of semaphores allowed systemwide.
+# The maximum number of allowed operations per semaphore system call.
+# The maximum number of semaphore arrays.
+kernel.sem=< x x x x >
+```
+
 
 ##OOM tunables
 ```shell
