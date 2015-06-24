@@ -1,5 +1,13 @@
 #Commands
 
+##vmstat
+```shell
+#Print out the averages of various system stats since boot.
+vmstat
+
+#Continously print stats, 1 second apart.
+vmstat 1
+```
 
 ##sar
 ```shell
@@ -10,6 +18,31 @@ yum install sysstat
 ##Cron job that controls how often the system collects information
 /etc/cron.d/sysstat
 sar
+
+#Set LANG variable for 24hr time
+LANG=C sar -q
+
+#Read one of the log files(or any sar data file)
+sar -q -f <file>
+
+#Report the I/O and transfer rate stats
+sar -b
+
+#Report the utilization of CPU0
+sar -P 0
+
+#Report network device statistics form the current log file.
+sar -n DEV
+```
+
+##mpstat
+```shell
+LANG=C mpstat -P 0
+```
+
+##iostat
+```shell
+iostat -x vda
 ```
 
 ##tuned
