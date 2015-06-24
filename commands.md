@@ -238,4 +238,6 @@ ipcs -l
 #The SysV IPC resources currently being used can be displayed:
 ipcs
 ```
-
+##powertop2tuned
+```shell
+power2tuned -e -m powersave lesswatts
