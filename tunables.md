@@ -134,6 +134,18 @@ kernel.sem=< x x x x >
 vm.nr_hugepages=20
 ```
 
+###Overcommit tunables
+```shell
+#Used to set the overcommitment policy
+# 0 - a heuristic overcommit algorithm is used. If an application tries to allocate more memory than could ovviously be granted, the allocation will be refused. Howerver, the kernel may sill overcommit memory if a large number of small allocations are requested by processes.
+#
+# 1 - always overcommit memory when it is requested. The kernel will always grant memory allocations, regardless of whether sufficient free memory exists.
+#
+# 2 - do not overcommit. The kernel will only commit an amount of memory equal to the amount of swap space plus a percentage(the default is 50) of physical memory. The percentage of physical memory allowed to be overcommitted is specified in the vm.overcommit_ratio
+vm.overcommit_memory=[0|1|2]
+vm.overcommit_ratio=
+```
+
 
 ##OOM tunables
 ```shell
