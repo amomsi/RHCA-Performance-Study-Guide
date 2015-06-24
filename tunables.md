@@ -51,7 +51,7 @@ net.ipv4.tcp_fastopen=<##>
 fs.file-max=<value>
 kernel.threads-max=<value>
 
-#Configure swap tendency or influence
+#Configure swap tendency or influence. A value of 0 means the system will not swap. 100 means swap when needed.
 vm.swappiness=<value>
 ```
 
@@ -179,4 +179,23 @@ IRQBALANCE_BANNED_CPUS=fffffffffffffffe
 ```shell
 cat /sys/kernel/mm/transparent_hugepage
 always|never
+```
+
+##KSM tunables
+```shell
+cd /sys/kernel/mm/ksm
+
+run: When set to 1, ksm will actively scan memory. When set to 0, scanning is disabled.
+
+pages_to_scan: The number of milliseconds to sleep between cycles.
+
+#There are alos a couple of informative files in this directory, amoung which are:
+
+pages_shared: The number of physical pages being shared.
+
+pages_sharing: The number of logical pages being shared.
+
+full_scans: How often the entire memory has been shared.
+
+merge_across_nodes: Whether pages from different NUMA nodes can be merged.
 ```
