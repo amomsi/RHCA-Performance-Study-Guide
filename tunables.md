@@ -129,6 +129,11 @@ kernel.msgmax=<size>
 kernel.sem=< x x x x >
 ```
 
+###Huge Pages tunables
+```shell
+vm.nr_hugepages=20
+```
+
 
 ##OOM tunables
 ```shell
