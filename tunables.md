@@ -161,3 +161,10 @@ IRQBALANCE_ONESHOT=yes
 
 #If set, irqbalance will not assign any interrupts to the CPUs listed. The value is a hexadecimal bitmask of all CPUs available on the system, calculated in the same way as smp_affinity. 
 IRQBALANCE_BANNED_CPUS=fffffffffffffffe
+```
+
+##Transparent huge pages tunables
+```shell
+cat /sys/kernel/mm/transparent_hugepage
+always|never
+```
