@@ -249,4 +249,11 @@ virsh schedinfo desktop
 virsh blkiotune desktop
 virsh memtune desktop
 virsh schedinfo desktop cpu_shares=100
+
+#View information on which physical CPU a guest may use.
+virsh vcpuinfo desktop
+
+#Pin the desktop virtual machine's vCPU 0 to run on the hypervisor's CPU1.
+virsh vcpupin desktop 0 1
+virsh vcpupin desktop 0 1,3
 ```
