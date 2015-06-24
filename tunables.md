@@ -37,11 +37,6 @@ CPUShares=1024
 ```
 ##sysctl tunables
 ```shell
-#Adjust core recieving memory buffer max
-net.core.rmem_max=<value in bytes>
-
-#Adjust tcp recieving memory buffer
-net.ipv4.tcp_rmem="<min-bytes> <default-bytes> <max-bytes>"
 
 #Adjust semaphore properties
 kernel.sem="<max sysV semaphores per semaphore array> <max sema systemwide> <max operations allowed per sema system call> <max sema arrays>"
@@ -58,6 +53,23 @@ kernel.threads-max=<value>
 
 #Configure swap tendency or influence
 vm.swappiness=<value>
+```
+
+###Buffer size sysctl tunables
+```shell
+#Adjust network core read memory buffer max
+net.core.rmem_max=<value in pages>
+
+#Adjust network core write memory buffer max
+net.core.wmem_max
+
+#Adjust tcp recieving memory buffer
+net.ipv4.tcp_mem="<min-pages> <pressure-pages> <max-pages>"
+net.ipv4.udp_mem="<min-pages> <pressure-pages> <max-pages>"
+
+#The receive/send TCP socket buffers. Values are in bytes. A socket buffer will start at the size of default bytes (second value) and be automatically adjested between min(first value) and max(thrid value) based on need.
+net.ipv4.tcp_rmem="<min-bytes> <pressure-bytes> <max-bytes>"
+net.ipv4.tcp_wmem="<min-bytes> <pressure-bytes> <max-bytes>"
 ```
 
 ###Controling per-BDI flush threads for writing dirty pages to disk
