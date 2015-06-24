@@ -230,3 +230,12 @@ qperf
 qperf desktopYIP tcp_bw udp_bw
 ```
 
+##ipcs
+```shell
+#Get current SysV IPC resource limits
+ipcs -l
+
+#The SysV IPC resources currently being used can be displayed:
+ipcs
+```
+
