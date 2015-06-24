@@ -72,6 +72,12 @@ net.ipv4.tcp_rmem="<min-bytes> <pressure-bytes> <max-bytes>"
 net.ipv4.tcp_wmem="<min-bytes> <pressure-bytes> <max-bytes>"
 ```
 
+###Window scaling
+```shell
+#Attempt to negotiate window scaling. 1 for enabled, 0 for disabled.
+net.ipv4.tcp_window_scaling=[1|0]
+```
+
 ###Controling per-BDI flush threads for writing dirty pages to disk
 ```shell
 #How old (in 1/100ths of a second) dirty data must be before it is eligible for being written out to disk. This stops the kernel from writing out the same page multiple times in quick succession just because a process modifies another byte of memory.
