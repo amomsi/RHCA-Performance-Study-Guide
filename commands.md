@@ -241,3 +241,12 @@ ipcs
 ##powertop2tuned
 ```shell
 power2tuned -e -m powersave lesswatts
+```
+
+##virsh
+```shell
+virsh schedinfo desktop
+virsh blkiotune desktop
+virsh memtune desktop
+virsh schedinfo desktop cpu_shares=100
+```
