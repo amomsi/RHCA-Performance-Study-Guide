@@ -45,6 +45,13 @@ LANG=C mpstat -P 0
 iostat -x vda
 ```
 
+##gnuplot
+```shell
+yum install -y gnuplot
+gnuplot /tmp/uptime.
+gnuplot -persist /tmp/uptime.gnuplot
+```
+
 ##tuned
 ```shell
 #Commands
