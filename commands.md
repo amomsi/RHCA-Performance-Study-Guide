@@ -51,6 +51,19 @@ yum install -y gnuplot
 gnuplot /tmp/uptime.
 gnuplot -persist /tmp/uptime.gnuplot
 ```
+##pcp(performance co-pilot)
+```shell
+yum -y install pcp-gui
+systemctl start pcp
+systemctl enable pcp
+systemctl status pcp
+
+pmstat -s 5
+pmcollectl -c 5
+pmatop
+pminfo
+pminfo -dt proc.nprocs
+pmval -s 5 proc.nprocs
 
 ##tuned
 ```shell
