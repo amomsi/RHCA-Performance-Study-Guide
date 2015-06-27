@@ -107,6 +107,8 @@ tuned-adm active
 ##systemctl
 ```shell
 systemctl set-property httpd.service MemoryLimit=512M
+
+#Inform systemd of any changes that might have been made to unit files.
 systemctl daemon-reload
 
 #Permanently enable cpu accounting for services.
@@ -119,9 +121,15 @@ systemctl set-property --runtime <service> CPUAccounting=yes
 systemctl set-property <service> CPUShares=<number>
 ```
 
+##systemd-run
+```shell
+#Run a single command inside a slice.
+systemd-run --slice=example.slice sleep 10d
+```
+
 ##systemd-cgtop
 ```
-#Inspect CPU usage
+#Inspect control groups.
 systemd-cgtop
 ```
 
