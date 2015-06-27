@@ -64,7 +64,19 @@ pmatop
 pminfo
 pminfo -dt proc.nprocs
 pmval -s 5 proc.nprocs
+```
+##modinfo
+```shell
+modinfo <module-name>
 
+#Show only the parameters of a module
+modinfo -p module
+```
+
+##modprobe
+```
+modprobe <module-name> parameter_name=value
+```
 ##tuned
 ```shell
 #Commands
