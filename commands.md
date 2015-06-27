@@ -81,7 +81,15 @@ modprobe <module-name> parameter_name=value
 ```shell
 #Commands
 yum install tuned
+
+#Change tuned profile
 tuned-adm profile <profile>
+
+#List all profiles
+tuned-adm list
+
+#List active profile
+tuned-adm active
 
 #Important files and directoires
 ##Configuration files(Create custom tuned profiles as directories here)
