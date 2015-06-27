@@ -3,13 +3,46 @@
 
 ##Tuned
 ```shell
+#Include virtual guest profile
+[main]
+include=virtual-guest
+
 #Configure the influence on how much data the kernel will attempt to read ahead when it sees contigous requests come in.
 [disk]
 readahead=number
+
+#Set transparent huge pages
+[vm]
+transparent_hugepages=[always|never]
+
+#Execute a shell script with the custom profiles
+[script]
+script=script.sh
+
+#Set sysctl parameters in the custom profile
+[sysctl]
+net.ipv4.icmp_echo_ignore_all=1
+
+
+
+
 ```
 
 ##Drop-in tunables
 ```shell
+
+#Every unit drop-in must have this:
+[Unit]
+Description=Any string here
+
+#Turn on CPU accouting:
+[Service|Slice]
+CPUAccouting=yes
+
+#Put service in a specific slice
+[Service]
+Slice=workers.slice
+
 #Adjust the OOM Score, lower values means it will not be eligable for killing
 [Service]
 OOMScoreAdjust=<value>
@@ -33,6 +66,20 @@ MemoryLimit=<Value><Size>
 #Configuring maximum CPU usage
 [Service|Slice]
 CPUShares=1024
+
+#Limit the number of processes a service/slice should have
+[Service]
+LimitNPROC=<#>
+
+#Limit the number of open files a service/slice can have
+[Service]
+LimitNOFILE=<#>
+
+#Configure the disk elevator for all disks
+[disk]
+elevator=cfq
+
+#
 
 ```
 ##sysctl tunables
@@ -185,17 +232,17 @@ always|never
 ```shell
 cd /sys/kernel/mm/ksm
 
-run: When set to 1, ksm will actively scan memory. When set to 0, scanning is disabled.
+ksm - run: When set to 1, ksm will actively scan memory. When set to 0, scanning is disabled.
 
-pages_to_scan: The number of milliseconds to sleep between cycles.
+ksm - pages_to_scan: The number of milliseconds to sleep between cycles.
 
 #There are alos a couple of informative files in this directory, amoung which are:
 
-pages_shared: The number of physical pages being shared.
+ksm - pages_shared: The number of physical pages being shared.
 
-pages_sharing: The number of logical pages being shared.
+ksm - pages_sharing: The number of logical pages being shared.
 
-full_scans: How often the entire memory has been shared.
+ksm - full_scans: How often the entire memory has been shared.
 
-merge_across_nodes: Whether pages from different NUMA nodes can be merged.
+ksm - merge_across_nodes: Whether pages from different NUMA nodes can be merged.
 ```

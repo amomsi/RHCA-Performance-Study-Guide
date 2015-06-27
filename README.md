@@ -9,17 +9,65 @@
 ## Profiling Tools
 
 ###VMstat
+The vmstat command, if given no arguments, will print out the averages of various system statistics since boot. The vmstat command accepts two arguments. The first is the delay, and the second is the count. The delay is a value in seconds between output. The count is the number of iterations of statitics to report. If no count is given, vmstat will continously report statistics.
 
 ###Sar
+The [sar](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#sar) command is a multipurpose analysis tool that is part of the systat package. It works in two modes. It can read data collected by a cron job every 10 mintues, or it can be used to collect instantaneous data about the state of the system.
+
+The cron job is install as ```/etc/cron.d/sysstat```, which runs the /usr/lib64/sa/sa1 and /usr/lib64/sa/sa2 commands that collect data using /usr/lib64/sa/sadc and sar. This data is stored in /var/log/sa/sadd, where dd is the two-digit day of the month.
+
+For best results when using sar, make sure to set a locale with a LANG environment variable that provides 24-hour time support.
 
 ###IOstat
 
 ###MPstat
+The [mpstat](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#mpstat) command reports CPU-related stats. Like sar, it may be necessary to configure the LANG for 24-hour time.
 
+##Plotting Data
+[gnuplot](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#gnuplot) is a data plotting program that can take data which you have collected and graph it in a number of ways.
 
+###gnuplot demonstration
+1. Capture two samples of the one-, five-, and 15-minute load averages from uptime, using awk to process the output into a simpler form to handle. In the following demonstration, we will also start some arbitrary system activity with dd to put load on the system
+```shell
+uptime | awk '{print $1, $(NF-2), $(NF-1), $NF }' > /tmp/uptime
+```
+2. gnuplot uses set to assign values and plot to list which fields to plot. Next, create a text file that includes the set and plot commands. Create a file name /tmp/uptime.gnuplot that contains the following:
+```shell
+set xdata time
+set timefmt '%H:%M:%S'
+set xlabel 'Time'
+
+set ylabel '15-minute load average'
+plot '/tmp/uptime' using 1:4
+```
+
+The first rhee line set the X-axis to a time value, set the time format, and set a label. The next line sets the Y-axis label. The final line generates a plot using the /tmp/uptime data. The X-axis will use column 1 and the Y-axis will use column 4.
+
+3. After making sure that gnuplot package is installed, plot the data with gnuplot:
+
+```shell
+yum install -y gnuplot
+gnuplot /tmp/uptime.gnuplot
+```
+
+4. Unfortunately, once the graph has been generated, gnuplot exits and so does the graph. When using gnuplot to display to the screen rather than an output file, use the -persist option to leave the graph on the screen.
+```shell
+gnuplot -persist /tmp/uptime.gnuplot
+```
+
+5. Set the X-axis and Y-axis to values that wil better show the data. Edit /tmp/uptime.gnuplot to contain the following:
+```shell
+set xdata time
+set timefmt '%H:%M:%S'
+set xlabel 'Time'
+set format x '%H:%M:%S'
+
+set ylabel '15-minute load average'
+set yrange [0:]
+
+plot '/tmp/uptime' using 1:4
+```
 #Chapter 3 - General Tuning
-
-
 
 ##Configuring System Tunalbes
 
@@ -37,12 +85,16 @@ Any changes in here take effect immidietly, but are not persistant.
 
 Important subdirectories in /proc/sys:
 
-|Direcotry|Description|
-|/etc/proc/sys/dev | Contains tunables for devices such as RAID devices, CD-ROMs, SCSI devies, and one or more prallel ports|
-|/etc/proc/sys/fs | Holds file-system related tunables |
-|/etc/proc/sys/kernel | COntains tunables that change how the kernel works internally|
-|/etc/proc/sys/net | Contains tunables that change network-related settings.|
-|/etc/proc/sys/vm | Contains tunables which change the virtual memory management of the kernel.|
+* /etc/proc/sys/dev - Contains tunables for devices such as RAID devices, CD-ROMs, SCSI devies, and one or more prallel ports
+
+* /etc/proc/sys/fs - Holds file-system related tunables
+
+* /etc/proc/sys/kernel - COntains tunables that change how the kernel works internally
+
+* /etc/proc/sys/net - Contains tunables that change network-related settings
+
+* /etc/proc/sys/vm - Contains tunables which change the virtual memory management of the kernel.
+
 *Always use echo to add to these files*
 For example:
 echo 0 > /proc/sys/net/ipv4/icmp_echo_ignore_all
@@ -723,40 +775,162 @@ mount -o logdev=/dev/sdd1 /dev/sdc1 /mnt
 ```
 
 ###Stripe unit and width
+What typically has a much greater performance impart is how file system metadata is aligned on disk when the disk in question is striped array (RAID 0, RAID 4, RAID 5, RAID 6). If a file system is not laid out to match the RAID loayout, it could happen that a file system metadata block is spread out over two disks, causing two disk requests instead of one, or that all of the metadata ends up on one individual disk, causing that disk to become a hot spot.
 
+To counter this, lay out your file system during creation to match the layout of the RAID array that it resides on. For XFS file systems, optimization for striped allocation requires the following information:
+
+* The chunk size of the RAID array
+
+* The number of disks in the RAID array
+
+* The number of parity disks in the RAID array
+
+Subtracing the number of parity disks from the total number of disks will provide the number of data disks in the array.
+
+The ```su``` and ```sw``` data section options are used to specify the RAID array chunk size and the number of data disks, repectively.
 ```shell
 mkfs -t xfs -d su=64k,sw=4 /dev/san/lun1
 ```
 
-##Tuning network performance.
+For ext4 file systems, the following information is required for file system alignment:
+
+* The chunk size of the RAID array
+
+* The number of disks in the RAID array
+
+* The number of parity disks in the RAID array.
+
+This information is then used to calulate the file system [stride](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/formulas.md#stripe-unit-and-width) and [stripe-width](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/formulas.md#stripe-unit-and-width).
+
+These numbers are provided to mkfs at file system creation
 ```shell
-ethtool eth0
+mkfs -t ext4 -E stride=16,stripe-width=64 /dev/san/lun1
 ```
 
+##Tuning network performance.
+There are a variety of tools for measuring network throughput. One of the newer and more extensive tools is [qperf](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#qperf). When using an Ehternet network, qperf can measure TCP, UDP, RDS, SCTP, and SDP socket throughputs and latencies.
+
+[qperf](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#qperf) needs to run on two machines. One(the listener) runs qperf without any options. The other (the sender) invokes qperf with the name of the first host as the first argument, followed by the test options.
+
 ##Tuning network queues
+The following outline shows the steps of network transmission:
 
+* Data is written to a socket (a file-like object) and is then put in the transmit buffer.
 
-#Tuning a database server - CHapter 12
+* The kernel encapsulates the data into a protocol data unit(PDU)
+
+* The PDUs move to the per-device transmit queue
+
+* The network device driver copies the PDU from the head of the tranmit queue to the NIC
+
+* The NIC sends the data and raises an interrupt when transmitted
+
+The following outline show the steps of network reception
+
+* The NIC receives a frame and uses DMA to copy the frame into the receive buffer.
+
+* The NIC rasies a hard interrupt.
+
+* The kernel handles the hard interrupt and schedules a soft interrupt to handle the packet
+
+* The soft interrupt is handled and moves the packet to the IP layer.
+
+* If the packet is destined for local delivary, the PDU will be decapsulated and put in a socket receive buffer. If a process was waiting on this socket, it will now process the data from the receive buffer.
+
+These buffer sizes can be manipulated with some [sysctl tunables](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#buffer-size-sysctl-tunables)
+
+To calculate the buffer sizes needed for maximum throughput, determine the amount of time that it takes for a packet to travel from the local system to the remote system. This can be used to calculate the amount of data that can be sent before the first packet has been received and acknowledged. First, figure out the round trip time of a packet, the time it takes for a packet to be setn from the local machine and returned from the remote machine. The ```ping``` command can be used to find the average round trip time.
+
+This calculation is called [bandwidth delay product](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/formulas.md#bandwidth-delay-product), or BDP for short.
+
+If the sysctl [net.ipv4.tcp_window_scaling](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#window-scaling) parameter is set to 1, the kernel will attempt to negotiate window scaling. Window scaling will be disabled if this value is 0.
+
+A method to reduce over head is to increase the size of the packets that can be sent (the MTU). When increasing the MTU above the Ethernet standard or 1500 bytes, the resulting packets are called jumbo frames.
+
+Before configuring a system to use jumbo frames with a specific NIC, must make sure that every piece of networking equipment on the network supports jumbo frames, including bot not limited to the NICs, switches, and routers. The official maximum size for a jumbo frame is 9000 bytes, but some equipment supports even larger frames.
+
+To configure a higher MTU, add the following line to ```/etc/sysconfig/network-sciprts/ifcfg-name```:
+```shell
+MTU=size
+```
+
+#Tuning a database server - Chapter 12
+
 ##System memory
 
 ##Disk storage
 
 ##Networking
 
-##Managin Inter-process Communication
+##Managing Inter-process Communication - pg. 338
+Semaphores allow two or more processes to coordinate access to shared resources. Message queues allow processes to cooperatively function by exchanging messages. System administrators can set limits on the number of SysV IPC resources available to processes.
 
-```shell
-ipcs -l
-ipcs
-```
+Current SysV IPC resource limits can be obtained by running [ipcs](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#ipcs)
+
+The SysV IPC mechanisms are tuned using entries in [/proc/sys/kernel/](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#sysv-ipc-tunables).
+
 
 /dev/shm - temporary storage. Will be lost if a power failure occurs.
 
 ##Managing Huge Pages
-###Transparent huge pages
+The Linux kernel supports large-sized memory pages through the huge pages mechanism(sometimes known as bigpages, largepages or the hugetlbfs file system). Most processor architectures support multiple page sizes.
 
+The number of translation lookaside buffer(TLB) entries for a process is fixed, but with larger page size, the TLB space for a processor becomes correspondingly larger. Having fewer TLB entries that point to more memory means that a TLB hit is more likely to occur.
+
+Look in the /proc/meminfo file to dtermine the size of a huge page on a particular system.
+```shell
+cat /proc/meminfo
+...
+Hugepagesize: 2048kB
+...
+```
+
+In order to allocate huge memory pages, set the total number of huge pages required using the [nm.nr_hugepages](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#huge-pages-tunables) sysctl parameter.
+
+In order to use the large pages, processes must request them using either the mmap system call or the shmat and shmget system calls. If mmap is used, then the large pages must be made avilable via the hugetlbfs file system:
+```shell
+mkdir /largefile
+mount -t hugetlbfs none /largefile
+```
+###Transparent huge pages
+RHEL6.2 introduced kernel functionality that supports the creation and management of huge memory pages without explicit developer or system administrator intervention. This feature is called transparent huge pages(THP). THP are enabled by default and they are used to map all of the kernel adress space to a single huge page to reduce TLB pressure. They are also used to map anonymous memory regions used by applications to allocate dynamic memory.
+
+THP differ from standard huge pages in that they are allocated and managed by the kernel automatically when they are enabled. They can also be swapped out of memory, unlike standard huge pages.
+
+THP tunables are found in /sys tree under the [/sys/kernel/mm/transparent_hugepage](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#transparent-huge-pages-tunables) directory.
+
+Transparent huge pages are not recommended for use with datbase workloads; instead, if huge pages are desired, they should be preallocated with the [sysctl vm.nr_hugepages](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#huge-pages-tunables) parameter.
 ##Overcomitting Memory
 ###Tuning overcommit
+Many applications request to allocate more memory than they will use. Other applications require the kernel to allocate more memory for a program than is available on the system. One way to address these situation is to manage the machine's memory overcommitment policy. A machine's memory overcommitment policy is set using the [vm.overcommit_memory](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#overcommit-tunables) tunable.
 
+The ```Committed_AS``` field in ```/proc/meminfo``` shows an estimate of how much RAM is required to avoid an out-of-memory(OOM) condition for the current workload on a system.
+
+The default for memory overcommitment on RHEL6 and later is 0 heuristic overcommit handling. If a machine is in a situation where it has overcommitted too much and now has to deliver more memory than is possible, ther kernel OOM killer thread is invoked and processes are killed.
 ##Tuning swappiness
+[vm.swappiness](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#sysctl-tunables)
 ##Tuning cached page writes
+Beyond moving the I/O elevator to deadline, which would give preference to disk reads, an administrator can also change settings that control how the system manages cached data of file writes. There are [sysctl tunables](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#controling-per-bdi-flush-threads-for-writing-dirty-pages-to-disk) that control writing of cached file data.
+
+#Tuning Power usage - Chapter 13 - pg.359
+##Tuning and Profiling Power Usage
+[powertop]()
+##Tuning power usage
+[powertop2tuned](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#powertop2tuned)
+
+#Tuning for virtualization - Chapter 14 - pg.379
+
+##Kernel Samepage Merging(KSM)
+When guests are running identical operating systems and/or workloads, there is a high chance that many memory pages will have the exact same content. Using Kernel Samepage Merging(KSM), total memory usage can be reduced by mergin those identical pages into one memory page. When a guest writes to that page, it will be converted into a new, separate page on the fly.
+
+```ksm``` can be configured manually in /sys/kernel/mm/ksm/, the following files are used to control ksm, but remember that ksmtuned will adjust [these settings](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/tunables.md#ksm-tunables) as necessary if it is running.
+
+To tune ksm, it is oftern more useful to use the ksmtuned service than to tune by hand. To confiure the ksmtuned service, use the file ```/etc/ksmtuned.conf```. To see what ksmtuned is doing, uncomment the LOGFILE and DEBUG lines and restart ksmtuned.
+
+##Setting limits on virtual machines
+By default, libvirt will configure controller groups(cgroups) for vitual machines running on the hypervisor. Adminstrators can view the cgroup definitions by using ```lscgroup```.
+
+libvirt provides an API for interacting with the cgroup limits assigned to individual running guests. Admins will use [virsh](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#virsh) for viewing and setting resource limits on virtual machines.
+
+##Pinning virutal machines to CPUs
+libvirt also provides a mechanism for pinning virtual machine vCPUs to physical hypervisor CPUs. Like with setting control group limits, administrators use the [virsh](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#virsh) command.
