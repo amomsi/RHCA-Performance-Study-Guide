@@ -75,6 +75,10 @@ LimitNPROC=<#>
 [Service]
 LimitNOFILE=<#>
 
+#Block I/O can be limited using relative weights.
+[Service]
+BlockIO*=
+
 #Configure the disk elevator for all disks
 [disk]
 elevator=cfq
@@ -151,7 +155,7 @@ kernel.sched_min_granularity_ns=nanoseconds
 ```shell
 
 #Specifies the maximum number of shared memory segments systemwide.
-kernel.shmmi=<num>
+kernel.shmmni=<num>
 
 #Specifies the total amount of shared memory, in pages, that can be used at one time on the system. ipcs -l displays this value after converting it to KiB. This should be at least kernel.shmmax/PAGE_SIZE, where PAGE_SIZE is the page size on the system (4KiB is typical). PAGE_SIZE can be looked up using getconf PAGESIZE.
 kernel.shmall
@@ -173,7 +177,7 @@ kernel.msgmax=<size>
 # The maximum number of semaphores allowed systemwide.
 # The maximum number of allowed operations per semaphore system call.
 # The maximum number of semaphore arrays.
-kernel.sem=< x x x x >
+kernel.sem=< 250 32000 x 128 >
 ```
 
 ###Huge Pages tunables
@@ -184,11 +188,11 @@ vm.nr_hugepages=20
 ###Overcommit tunables
 ```shell
 #Used to set the overcommitment policy
-# 0 - a heuristic overcommit algorithm is used. If an application tries to allocate more memory than could ovviously be granted, the allocation will be refused. Howerver, the kernel may sill overcommit memory if a large number of small allocations are requested by processes.
+# 0 overcommit policy - a heuristic overcommit algorithm is used. If an application tries to allocate more memory than could ovviously be granted, the allocation will be refused. Howerver, the kernel may sill overcommit memory if a large number of small allocations are requested by processes.
 #
-# 1 - always overcommit memory when it is requested. The kernel will always grant memory allocations, regardless of whether sufficient free memory exists.
+# 1 overcommit policy - always overcommit memory when it is requested. The kernel will always grant memory allocations, regardless of whether sufficient free memory exists.
 #
-# 2 - do not overcommit. The kernel will only commit an amount of memory equal to the amount of swap space plus a percentage(the default is 50) of physical memory. The percentage of physical memory allowed to be overcommitted is specified in the vm.overcommit_ratio
+# 2 overcommit policy - do not overcommit. The kernel will only commit an amount of memory equal to the amount of swap space plus a percentage(the default is 50) of physical memory. The percentage of physical memory allowed to be overcommitted is specified in the vm.overcommit_ratio
 vm.overcommit_memory=[0|1|2]
 vm.overcommit_ratio=
 ```
@@ -215,6 +219,9 @@ echo 0 > /sys/fs/cgroup/cpuset/<cgroup#>/cpuset.mems
 
 ##irqbalance tunables
 ```shell
+#irqbalance config file
+/etc/sysconfig/irqbalance
+
 #When set to yes, irqbalance will sleep for one minute after startup, rebalance interrupts once, and then exit. This can be useful for avoiding the overhead of iqbalance waking up every 10 seconds
 IRQBALANCE_ONESHOT=yes
 

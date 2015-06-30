@@ -31,7 +31,7 @@ The [mpstat](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master
 ```shell
 uptime | awk '{print $1, $(NF-2), $(NF-1), $NF }' > /tmp/uptime
 ```
-2. gnuplot uses set to assign values and plot to list which fields to plot. Next, create a text file that includes the set and plot commands. Create a file name /tmp/uptime.gnuplot that contains the following:
+2. gnuplot uses ```set``` to assign values and plot to list which fields to plot. Next, create a text file that includes the set and plot commands. Create a file name /tmp/uptime.gnuplot that contains the following:
 ```shell
 set xdata time
 set timefmt '%H:%M:%S'
@@ -41,7 +41,7 @@ set ylabel '15-minute load average'
 plot '/tmp/uptime' using 1:4
 ```
 
-The first rhee line set the X-axis to a time value, set the time format, and set a label. The next line sets the Y-axis label. The final line generates a plot using the /tmp/uptime data. The X-axis will use column 1 and the Y-axis will use column 4.
+The first three lines set the X-axis to a time value, set the time format, and set a label. The next line sets the Y-axis label. The final line generates a plot using the /tmp/uptime data. The X-axis will use column 1 and the Y-axis will use column 4.
 
 3. After making sure that gnuplot package is installed, plot the data with gnuplot:
 
@@ -67,6 +67,26 @@ set yrange [0:]
 
 plot '/tmp/uptime' using 1:4
 ```
+
+##Performance Co-Pilot
+Performance Co-Pilot, or pcp for short, allows admins to collect and graph data from various subsystems.
+
+If graph data is also desired, an administrator will also need to install the pcp-gui package. pcp-gui provides additional utilities like pmchart to generate graphical data of machine metrics.
+
+###Using the pcp command line utilities.
+
+
+* [pmstat](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#pcpperformance-co-pilot) provides information similar to vmstat. Like vmstat, pmstat will support options to adjust the interval between collections (-t) or the number of samples (-s).
+
+* Another convenient utility is [pmcollectl](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#pcpperformance-co-pilot). pmcollectl is a Python port of a popular open source storage statistics application called collectl.
+
+* [pmatop](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#pcpperformance-co-pilot) provides a top-like output of machine statistics and data. It includes disk I/O statistics, network I/O statistics, as well as the CPU, memory, and process information provided by other tools.
+
+Performance Co-Pilot also has a text-based query mechanism for interrogating individually tracked metrics. To obtian a list of the metrics stored in the Performance Co-Pilot database, use [pminfo](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#pcpperformance-co-pilot). [pmval](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#pcpperformance-co-pilot) can then be used with the metric name to gather data about the item.
+
+###Using the pmchart graphing utility
+Performance Co-Pilot also provides a program called ```pmchart``` that takes the gathered data and graphically represents it. ```pmchart``` is provided by the pcp-gui package.
+
 #Chapter 3 - General Tuning
 
 ##Configuring System Tunalbes
@@ -121,44 +141,35 @@ sysctl -p /etc/sysctl.conf - makes the change without rebooting the system
 ```
 
 ###Configuring module parameters
-Some useful commands:
-```shell
-lsmod - list kernel modules
-modinfo <module> - list module info
-modinfo -p <module> - list module parameters
-```
-The /sys directory contains information provided by the kernel about the state of the system. For example, the /sys/module/<module-name>/parameters/<parameter-name>.
+These kernel modules allow the kernel to automatically load into memory only the components that are needed for a particular system.
 
+Many kernel modules have settings that can be changed. Some settings can only be assinged when a kernel module is loaded, while others can be set upon loading or changed on the fly.
 
-To permanently set the same value every time the module is loaded, create a special configuration file in /etc/modprob.d/<name>.conf:
-```shell
-options <module-name> <parameter>=<value>
-```
+Another way to get information about a kernel module is the [modinfo](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#modinfo) command. The ````modinfo module``` command returns the module information of a particular kernel module on the command line.
 
-You can also pass kernel module paramters at load time. 
+With the command ```modinfo -p module``` only the parameters of the module are shown.
+
+The ```/sys``` directory contains information provided by the kernel about the state of the system. Look in the file ```/sys/module/modulename/parameters/parametername``` to see the current setting for a module parameter.
+
+To permanently set the same value every time that the module is loaded, create a special configuration file in ```/etc/modprobe.d```. The new file name must end in ```.conf```
+
 ```shell
-modprobe usb_storage delay_use=2
+options modulename parameter=value
 ```
 
-cat /sys/module/usb_storage/parameters/dealy_use
-/sys is access to the kernel itself.
-You can't change the /sys parameters on the fly when a module is already loaded. You need to tune them at load time. 
-modprobe -r usb_storage
-lsmod | grep usb
-
-To change parameters at load time:
-```shell
-modprobe usb_storage dealy_use=5
-```
-This is a good way to test, we still need to make it perminent.
-
+Parameters can be specified on the [modprobe](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#modprobe) command line at load time if the setting needs to be applied only once, or the parameters settings in a configuration file need to be overridden.
 
 ##Installing and Enabling tuned
 ```shell
 systemctl enable tuned
 systemctl start tuned
 ```
-tuned on RHEL7 ships with 10 tunining profiles.
+
+###Selecting a ```tuned``` profile
+Different workloads and conflicting tuning goals for server systems, such as performance, latency, and power saving require different tuning.
+
+The tuned package contains the [tuned-amd](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#tuned) command, which acts as an interface to change settings of the tuned daemon.
+
 For static tuning, mostly predefined sysctl and /sys settings are appliedt to the system.
 Profiles can be switched based on the current system time.
 Dynamic tuning.
@@ -167,22 +178,17 @@ Some tuned profiles activate helper programs that montior the activity of select
 
 To configure dynamic tuning, change the dynamic_tuning setting to 1 in /etc/tuned/tuned_main.conf
 
-Useful Commands:
+##Creating Custom tuned Profiles
+The ```tuned``` service supports the creation and use of custom tuning profiles. The tuned package ships with build-in profiles residing in ```/usr/lib/tuned/profilename/```.
+
+The /etc/tuned directory holds the active_profile file, which contains the name of the currently active tuned profile and the tuned-main.conf configuration file for configuring dynamic tuning.
+
+The build-in profiles should not be altered. Instead, a new directory /etc/tuned/profilename needs to be created. The name of the newly created direccotry in /etc/tuned is recognized by tuned as the profile name of the custom profile. To create a new profile called myprofile, the directory /etc/tuned/myprofile needs to be created.
 ```shell
-tuned-adm active
-tuned-adm list
-tuned-adm profile <profile-name>
-tuned-adm off
+mkdir /etc/tuned/myprofile
 ```
 
-##Creating Custom tuned Profiles
-file://usr/share/docs in a web browser to view docs.
-
-/usr/lib/tuned/<profile>/tuned.conf for existing profiles
-
-/etc/tuned/ for cusotom profiles
-
-just make a directory there, and make a tuned.conf file inside that directory.
+In the newly created directory for the custom profile, tuned expects the tuned.conf configuration file.
 
 ###Inherit tuning settings from existing profile
 ```shell
@@ -246,6 +252,10 @@ Using the pam_limits module, ulimits can be applied on a per user/group bases in
 ```shell
 /etc/security/limits.d/<name>.conf
 ```
+For example, to limit all the users in the managers group to a maximum of three simultaneous logins, ```/etc/security/limits.d/managers.conf``` might include the line:
+```shell
+@managers hard maxlogins 3
+```
 
 ###Setting limits for services
 With systemd, it is also possible to set POSIX limits for services. This is accomplished using the family of Limit*= entries in the [Service] block of a unit file.
@@ -267,8 +277,15 @@ After adding or editing this file, the ```systemctl daemon-reload``` command can
 A full list of Limit*= settings, and their meanings, are described in the systemd.exec and setrlimit man pages.
 
 ##Using Control Groups(cgroups)
+The linux kernel offers a mechanism for controlling resources in a fine-grained way called Linux control groups (cgroups). When using cgroups, resources are placed in controllers representing the type of resource; for example, cpu for CPU time, memory for memory usage, and blkio for disk I/O.
+
+Inside a cgroup, resources are shared equally, but different limits and/or weights can be set on different cgroups, as long as they don't exceed the limits of the parent cgroup. When a new cgroup is created it normally inherits the limits set on its parent cgroup, unless explicity overridden.
 
 ###cgroups and systemd
+By default, systemd will subdivied the cpu, cpuacct, blkio, and memory cgroups into three equal parts (called slices by systemd): ```system``` for system services and daemons, ```machine``` for virtual machines, and ```user``` for user sessions.
+
+Administratos can create extra *.slice units, with their own limits, and assign services to these slices. It is also possible to create slices as children of another slice by naming them ```<parent>-<child>.slice```.
+
 
 * system.slice - All services started by systemd will be put into a new child group of this slice by default
 
@@ -276,14 +293,11 @@ A full list of Limit*= settings, and their meanings, are described in the system
 
 * machine.slice - Virutal machines managed by libvirt will be automatically assigned a new child slice of this slice.
 
-Three names slices are created by default, but admins can create extra *.slice units, with their own limits, and assign services to these slices. It is also possible to create slices as children of another slice by naming them <parent>.<child>.slice. This ensures that the new slice will be created inside the <parent>.slice slice.
-
 ###Inspecting cgroups
-```shell
-systemd-cgtop
-systemd-cgls
-systemd-run --slice=example.slice sleep 10d
-```
+```systemd``` ships with two tools to inspect the current cgroup/slice layout: systemd-cgtop and systemc-cgls.
+
+A single command can also be run inside a systemd slice by executing it with [systemd-run](https://github.com/elextro/RHCA-Performance-Study-Guide/blob/master/commands.md#systemd-run) command, and using the --slice=option.
+
 
 ###Managing systemd cgroup settings
 
@@ -313,7 +327,7 @@ MemoryLimit=1G
 BlockIO*=
 ```
 
-A full list of the directives can be found in ```man systemd.resource-control```
+A full list of the directives can be found in [man systemd.resource-control](http://www.freedesktop.org/software/systemd/man/systemd.resource-control.html)
 
 ####Running services in a custom slice
 Ro run a service in a different slice, the setting Slice=other.slice can be used inside the [Service] block, where other.slice equls the name of a custom slice.
@@ -323,8 +337,6 @@ Slice=other.slice
 ```
 
 To create a slice as a child of another slice(inheriting all settings from the parent unless explicity overridden), the slice should be named parent-child.slice
-
-
 
 #Chapter 5 - Hardware Profiling
 ##Hardware Resources
@@ -567,6 +579,7 @@ staprun syscalls_by_proc
 
 ##Running SystemTap programs as a non-root user - pg. 178
 Modules (.ko files) must be plublished in /usr/lib/modules/$(uname -r)/systemtap in order for non-root users to have access to them.
+User must also be in the ```stapusr``` system group.
 
 ##Deploying SystemTap Instrumentation Modules - pg. 183
 
@@ -891,6 +904,9 @@ In order to use the large pages, processes must request them using either the mm
 ```shell
 mkdir /largefile
 mount -t hugetlbfs none /largefile
+
+or in /etc/fstab
+hugetlbfs /hugepages hugetlbfs defaults
 ```
 ###Transparent huge pages
 RHEL6.2 introduced kernel functionality that supports the creation and management of huge memory pages without explicit developer or system administrator intervention. This feature is called transparent huge pages(THP). THP are enabled by default and they are used to map all of the kernel adress space to a single huge page to reduce TLB pressure. They are also used to map anonymous memory regions used by applications to allocate dynamic memory.
